@@ -92,7 +92,7 @@ except Exception as _e:
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".tiff"}
 
 # 縦書き時に90°回転して描画する文字
-_VERT_ROTATE = frozenset('ー―─━…‥〜～「」『』（）【】〔〕〈〉《》｛｝！？！？')
+_VERT_ROTATE = frozenset('ー―─━…‥〜～「」『』（）【】〔〕〈〉《》｛｝')
 # 縦書き時に右上寄せにする句読点
 _VERT_PUNCT  = frozenset('。、')
 
