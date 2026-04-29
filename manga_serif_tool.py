@@ -496,6 +496,37 @@ class MangaView(QGraphicsView):
             self.resetTransform()
             self.fitInView(scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
 
+    def keyPressEvent(self, event):
+        arrow_keys = {
+            Qt.Key.Key_Left:  (-1,  0),
+            Qt.Key.Key_Right: ( 1,  0),
+            Qt.Key.Key_Up:    ( 0, -1),
+            Qt.Key.Key_Down:  ( 0,  1),
+        }
+        if event.key() not in arrow_keys:
+            super().keyPressEvent(event)
+            return
+
+        dx, dy = arrow_keys[event.key()]
+        step = 10 if event.modifiers() & Qt.KeyboardModifier.ShiftModifier else 1
+
+        selected = [it for it in self.scene().selectedItems()
+                    if hasattr(it, "data")]  # MangaTextItem のみ
+        if selected:
+            for it in selected:
+                it.moveBy(dx * step, dy * step)
+            event.accept()
+        else:
+            # 選択なし → 左右はページ送り、上下は通常スクロール
+            if event.key() == Qt.Key.Key_Left:
+                self.page_change_requested.emit(-1)
+                event.accept()
+            elif event.key() == Qt.Key.Key_Right:
+                self.page_change_requested.emit(1)
+                event.accept()
+            else:
+                super().keyPressEvent(event)
+
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
@@ -639,7 +670,6 @@ class MainWindow(QMainWindow):
         tb.addAction(a)
 
         a = QAction("◀ 前", self)
-        a.setShortcut(QKeySequence(Qt.Key.Key_Left))
         a.triggered.connect(lambda: self.change_page(-1))
         tb.addAction(a)
 
@@ -647,7 +677,6 @@ class MainWindow(QMainWindow):
         tb.addWidget(self.page_label)
 
         a = QAction("次 ▶", self)
-        a.setShortcut(QKeySequence(Qt.Key.Key_Right))
         a.triggered.connect(lambda: self.change_page(1))
         tb.addAction(a)
 
