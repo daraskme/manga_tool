@@ -91,6 +91,36 @@ except Exception as _e:
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".gif", ".tiff"}
 
+# 縦書き時に90°回転して描画する文字
+_VERT_ROTATE = frozenset('ー―─━…‥〜～「」『』（）【】〔〕〈〉《》｛｝！？！？')
+# 縦書き時に右上寄せにする句読点
+_VERT_PUNCT  = frozenset('。、')
+
+
+def _draw_char_vertical(painter: "QPainter", fm: "QFontMetrics",
+                        ch: str, x: float, col_w: float, y_baseline: float) -> None:
+    """縦書き1文字を適切な向き・位置で描画する。"""
+    ch_w = fm.horizontalAdvance(ch)
+    ch_h = fm.height()
+
+    if ch in _VERT_ROTATE:
+        # セル中心を軸に90°回転
+        cx = x + col_w / 2
+        cy = y_baseline - fm.ascent() + ch_h / 2
+        painter.save()
+        painter.translate(cx, cy)
+        painter.rotate(90)
+        # 回転後座標でセンタリング
+        painter.drawText(QPointF(-ch_w / 2, (fm.ascent() - fm.descent()) / 2), ch)
+        painter.restore()
+    elif ch in _VERT_PUNCT:
+        # 右上寄せ（句読点は右上隅に配置するのが縦組みの慣例）
+        x_ch = x + col_w - ch_w
+        y_ch = y_baseline - ch_h * 0.45
+        painter.drawText(QPointF(x_ch, y_ch), ch)
+    else:
+        painter.drawText(QPointF(x + (col_w - ch_w) / 2, y_baseline), ch)
+
 
 class VerticalPreviewWidget(QWidget):
     """縦書きテキストを QPainter で描画するプレビューウィジェット"""
@@ -151,8 +181,7 @@ class VerticalPreviewWidget(QWidget):
             x -= col_w
             y = oy + fm.ascent()
             for ch in (col_text or " "):
-                x_ch = x + (col_w - fm.horizontalAdvance(ch)) / 2
-                painter.drawText(QPointF(x_ch, y), ch)
+                _draw_char_vertical(painter, fm, ch, x, col_w, y)
                 y += fm.height() + char_sp
             if col_idx < len(columns) - 1:
                 x -= line_sp
@@ -306,8 +335,7 @@ class MangaTextItem(QGraphicsObject):
                 x -= col_w
                 y = fm.ascent() + 3
                 for ch in (col_text or ""):
-                    x_ch = x + (col_w - fm.horizontalAdvance(ch)) / 2
-                    painter.drawText(QPointF(x_ch, y), ch)
+                    _draw_char_vertical(painter, fm, ch, x, col_w, y)
                     y += fm.height() + cs
                 if col_idx < len(columns) - 1:
                     x -= ls
@@ -346,7 +374,7 @@ class MangaTextItem(QGraphicsObject):
         menu.addAction("削除").triggered.connect(
             lambda: win.delete_item(self) if win else None
         )
-        menu.exec(event.screenPos().toPoint())
+        menu.exec(event.screenPos())
 
 
 class LayerPanel(QWidget):
