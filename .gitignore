@@ -1,0 +1,27 @@
+# 仮想環境
+.venv_manga_serif/
+.venv*/
+venv/
+env/
+
+# Python キャッシュ
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# ログ
+manga_serif_tool.log
+
+# 出力フォルダ（*_serif/）
+*_serif/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# エディタ
+.vscode/
+.idea/
+*.swp
