@@ -708,6 +708,21 @@ class MainWindow(QMainWindow):
         a.triggered.connect(lambda: self.change_page(1))
         tb.addAction(a)
 
+        tb.addSeparator()
+        a = QAction("💾 保存", self)
+        a.setShortcut(QKeySequence("Ctrl+S"))
+        a.setToolTip("現在のページを保存 (Ctrl+S)")
+        a.triggered.connect(self._save_current_page_manual)
+        tb.addAction(a)
+
+    def _save_current_page_manual(self):
+        if self.current_index < 0 or not self.image_paths:
+            self.statusBar().showMessage("保存するページがありません")
+            return
+        self._save_current_page()
+        path = self.image_paths[self.current_index]
+        self.statusBar().showMessage(f"保存しました: {path.name}  →  {self.serif_folder}")
+
     def dragEnterEvent(self, event):
         if event.mimeData().hasUrls():
             event.acceptProposedAction()
