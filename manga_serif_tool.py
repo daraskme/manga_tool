@@ -114,9 +114,11 @@ def _draw_char_vertical(painter: "QPainter", fm: "QFontMetrics",
         painter.drawText(QPointF(-ch_w / 2, (fm.ascent() - fm.descent()) / 2), ch)
         painter.restore()
     elif ch in _VERT_PUNCT:
-        # 右上寄せ（句読点は右上隅に配置するのが縦組みの慣例）
-        x_ch = x + col_w - ch_w
-        y_ch = y_baseline - ch_h * 0.45
+        # 縦組みでは句読点を右上に配置する。
+        # 日本語フォントの 、。 は全角 advance を持つが可視グリフは左下寄りに
+        # 描かれるため、描画起点を右・上に約半セルずらしてインクを右上に来させる。
+        x_ch = x + col_w / 2
+        y_ch = y_baseline - ch_h / 2
         painter.drawText(QPointF(x_ch, y_ch), ch)
     else:
         painter.drawText(QPointF(x + (col_w - ch_w) / 2, y_baseline), ch)
